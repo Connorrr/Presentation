@@ -1,0 +1,39 @@
+#Function: 		PC_Globals.pcl
+#Description:	Contains the Global variables used in the experiment
+#Programmer:	Connor Reid (Psy Technician)
+#Created@:		08/08/2013
+#LastMod@:		01/12/2015
+#ModifiedBy: 	Connor Reid
+#-------------------------------------------------------------------
+#Experiment Type
+
+
+int PIXELS_PER_CM = 38; 	#pixels per cm
+int SPEED_UP = 1;				#speed up trial duration.  1 = normal time.
+int NUM_AQUI = 24;	
+int NUM_EXTINCT = 24;
+int NUM_REIN = 3;
+int NUM_TEST = 6;
+
+#### Globals for Pavlovian Conditioning ####
+array <bool> IS_POLY[24];
+
+bool SKIP_TEST =true;		#set true to skip test trial at the beginning 
+bool SKIP_AQUI = true;		#set to true to skip Aquisition phase
+bool SKIP_EXTINCT = false;	#set true to skip Extinction phase
+bool SKIP_REIN = false;		#set true to skip Reinstatement phase
+
+
+#### Globals for Pavlovian Conditioning ####
+
+#  Global's for Clare to change
+bool RUN_PRACTICE_TRIALS = false;			#change to "false" if you wish to skip practice trials
+bool RUN_ATTRACTIVENESS_TRIALS = true;		#change to "false" if you wish to skip Attractiveness trials
+bool RUN_RECOG_TRIALS = true;					#change to "false" if you wish to skip recognition trials
+int NUM_ATTRACTIVE_TRIALS = 32;
+int NUM_RECOG_TRIALS = 32;
+double PIC_WIDTH = 6.0;			#in CM.  DECIMAL POINT MUST REMAIN
+double PIC_HEIGHT = 6.0;		#in CM.	DECIMAL POINT MUST REMAIN
+
+
+

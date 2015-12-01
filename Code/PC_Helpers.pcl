@@ -1,0 +1,215 @@
+#Function: 		PC_Helpers.pcl
+#Description:	Contains the subroutines used in the experiment
+#Programmer:	Connor Reid (Psy Technician)
+#Created@:		08/08/2013
+#LastMod@:		01/12/2015
+#ModifiedBy: 	Connor Reid
+#Copyright@: 	School Of Psychology, Griffith University
+#-------------------------------------------------------------------
+#include "generic_subs.pcl";
+sub 
+	build_stim_list(int size, array <bool,1>& trial_list)
+begin
+	#get equal number of poly and triangle here
+	loop 
+		int j = 1;
+	until 
+		j > size
+	begin
+		if (j <= (size/2))then
+			trial_list[j] = true;
+		else
+			trial_list[j] = false;
+		end;
+		j=j+1;
+	end;
+
+end;
+
+sub
+	sort_stim_list(int size, int group_number, array <bool,1>& trial_list)
+begin
+		array<int>list_1[0];
+		array<int>list_2[0];
+		bool temp = false;
+		#is_sorted = true;
+		# get the random size of the pattern for the 
+		int val = random(size/4,size/2-2);
+		#term.print_line(val);
+		int m = (size/2-1)-val;
+		#term.print_line(m);
+		int n = 2*val-(size/2-1);
+		#term.print_line(n);
+		
+			list_1.add(1);									# Changed from list_1.add(2);	
+			loop int i = 1 until i > m-1 begin		# Changed from i > m
+				list_1.add(2);
+				i=i+1;
+			end;
+			loop int i = 1 until i > n+1 begin		# Changed from i > n
+				list_1.add(1);
+				i=i+1;
+			end;
+			list_1.shuffle(2, list_1.count());
+			int num = random(val, val+1);
+			#term.print_line(num);
+			m = size/2-num;
+			#term.print_line(m);
+			n = 2*num-size/2;
+			#term.print_line(n);
+			loop int i = 1 until i > m begin
+				list_2.add(2);
+				i=i+1;
+			end;
+			loop int i = 1 until i > n begin
+				list_2.add(1);
+				i=i+1;
+			end;
+			list_2.shuffle();
+			term.print("1: (");
+			loop int i = 1 until i > list_1.count() begin
+				term.print(string(list_1[i]) + " ");
+				i = i + 1;
+			end;
+			term.print(")\n2: (");
+			loop int i = 1 until i > list_2.count() begin
+				term.print(string(list_2[i]) + " ");
+				i = i + 1;
+			end;
+			term.print(")\n");
+		#end;
+		int k=1;
+		#term.print_line("list_1:  ");
+		#print_1d_int_array(list_1);
+		#term.print_line("list_2:  ");
+		#print_1d_int_array(list_2);
+		loop int j = 1 until j > list_1.count() begin
+			loop int i = 1 until i > list_1[j] begin
+				if (group_number == 1)then# poly first
+					trial_list[k]=false;
+				else
+					trial_list[k]=true;
+				end;
+				i=i+1;
+				k=k+1;
+			end;
+			if j <= list_2.count() then			#  if statement to avoid null pointer
+				loop int i = 1 until i > list_2[j] begin
+					if (group_number == 1)then# poly first
+						trial_list[k]=true;
+					else
+						trial_list[k]=false;
+					end;
+					i=i+1;
+					k =k+1;
+					#term.print_line(false);
+				end;
+			end;
+			j=j+1;
+		end;	
+		if (group_number == 1) then		# k only goes up to 23 so this if statement makes sure there will be a balanced amount of polys
+			trial_list[size] = false;
+		else
+			trial_list[size] = true;
+		end;
+end;
+/* 
+/*This function could end up with infinite loop*
+/* John has turn off it*
+*/
+/*
+sub
+	sort_stim_list(int size, int group_number)
+begin
+	IS_POLY[1] = IS_POLY[random(1,size)];
+	loop bool is_sorted = false until is_sorted == true begin
+		bool temp = false;
+		is_sorted = true;
+		int val = random(1,size);
+		if (IS_POLY[2] == IS_POLY[1] && IS_POLY[2] == (group_number == 1))then
+		
+			temp = IS_POLY[2];
+			IS_POLY[2] = IS_POLY[val];
+			IS_POLY[val] = temp;
+			is_sorted = false;
+		end;
+		loop int j = 3 until j > size begin
+			if (IS_POLY[j] == IS_POLY[j-1] && IS_POLY[j] == IS_POLY[j-2])then
+				temp = IS_POLY[j];
+				IS_POLY[j] = IS_POLY[val];
+				IS_POLY[val] = temp;
+				is_sorted = false;
+				break;
+			end;
+			j = j + 1;
+		end;
+	end;
+end;
+*/
+sub
+int get_response
+begin
+	stimulus_data last_stim_data = stimulus_manager.last_stimulus_data();
+	int response_button = last_stim_data.button();
+	return response_button;
+end;
+
+sub
+save_trail_data(int phase, int trial_num, int shape, int expectancy, int evaluation, output_file out)
+begin
+	#"Phase\tTrial Number\tShape\tExpectancy\tEvaluation\n"
+	string expect = "";
+	string eval = "";
+	expectancy=expectancy-10;
+	evaluation=evaluation-10;
+	if (expectancy < -5 || expectancy > 5)then
+		expect = "n/a";
+	else
+		expect = string(expectancy);
+	end;
+	if (evaluation < -5 || evaluation > 5)then
+		eval = "n/a";
+	else
+		eval = string(evaluation);
+	end;
+	out.print(string(phase) + "\t");
+	out.print(string(trial_num) + "\t");
+	out.print(string(shape) + "\t");
+	out.print(expect + "\t");
+	out.print(eval + "\n");
+end;
+#
+sub int num_str_2_int(string str_num)
+begin
+	int int_num = 0;
+	if is_int(str_num) then
+		#valid string number without 0
+		int_num = int (str_num);
+	else	# is not a valid string number
+		#remove the 0 in 1st place
+		int_num = int(str_num.substring(2,1));
+	end;
+	
+	return int_num;
+		
+end;
+
+sub
+string CalculateRELT(string start_time, string end_time)
+begin
+	#Calculate the relative time
+	array<string> start_arr[3]={""};
+	array<string> end_arr[3]={""};
+	start_time.split(":",start_arr);
+	end_time.split(":",end_arr);
+	int start_time_in_sec = num_str_2_int(start_arr[1])*3600+num_str_2_int(start_arr[2])*60+num_str_2_int(start_arr[3]);
+	int end_time_in_sec = num_str_2_int(end_arr[1])*3600+num_str_2_int(end_arr[2])*60+num_str_2_int(end_arr[3]);
+	int relt_in_sec = end_time_in_sec-start_time_in_sec;
+	int hr = relt_in_sec/3600;
+	int min = (relt_in_sec-(hr*3600))/60;
+	int sec = mod(relt_in_sec,60);
+	string relt = printf(hr,"%02d")+":"+printf(min,"%02d")+":"+printf(sec,"%02d");
+	
+	return relt;
+	
+end;

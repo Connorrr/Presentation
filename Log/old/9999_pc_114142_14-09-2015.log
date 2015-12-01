@@ -1,0 +1,15 @@
+Scenario - PC
+Logfile written - 09/14/2015 11:44:55
+
+Subject	Trial	Event Type	Code	Time	TTime	Uncertainty	Duration	Uncertainty	ReqTime	ReqDur	Stim Type	Pair Index
+
+9999	1	Response	1	247074	236909	3
+9999	2	Response	1	321316	74212	1
+9999	3	Response	1	901954	580536	3
+9999	4	Response	1	1192516	290417	1
+9999	7	Response	10	1366115	23132	1
+9999	9	Response	1	1450915	57612	1
+9999	11	Response	11	1562595	61487	2
+9999	14	Response	10	1670594	19025	3
+9999	17	Response	10	1807715	55672	1
+9999	21	Quit		1934116	31446

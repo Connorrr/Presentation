@@ -1,0 +1,8 @@
+Scenario - PC
+Logfile written - 09/09/2015 14:15:25
+
+Subject	Trial	Event Type	Code	Time	TTime	Uncertainty	Duration	Uncertainty	ReqTime	ReqDur	Stim Type	Pair Index
+
+hndchgf	1	Response	1	20925	10093	1
+hndchgf	2	Response	1	23083	2086	2
+hndchgf	3	Quit		40445	17282

@@ -1,0 +1,60 @@
+#Function: 		generic_subs.pcl
+#Description:	These subs are to be included in all presentation applications.  They are in a generic format so they can be repeatedly used.
+#Programmer:	Connor Reid (Psy Technician)
+#Created@:		01/12/2015
+#LastMod@:		01/12/2015
+#ModifiedBy: 	Connor Reid
+#-------------------------------------------------------------------
+
+sub print_2d_array(array <string, 2>& arr) begin		##Used to terminal print 2d arrays
+	loop int j = 1 until j > arr.count() begin
+		term.print(string(j) + ": ");
+		loop int k = 1 until k > arr[j].count() begin
+			term.print(arr[j][k] + "\t");
+			k = k + 1;
+		end;
+		term.print("\n");
+		j = j + 1;
+	end;
+end;
+
+sub print_1d_bool_array(array <bool, 1>& arr) begin		##Used to terminal print 1d bool arrays
+	term.print_line("1D Array: ");
+	loop int j = 1 until j > arr.count() begin
+		term.print(string(arr[j]) + ", ");
+		j = j + 1;
+	end;
+end;
+
+sub print_1d_int_array(array <int, 1>& arr) begin		##Used to terminal print 1d int arrays
+	term.print_line("1D Array: ");
+	loop int j = 1 until j > arr.count() begin
+		term.print(string(arr[j]) + ", ");
+		j = j + 1;
+	end;
+end;
+
+sub
+	get_input_csv(string file_path, array <string, 2>& stim)		# Get stimulus from this multi column file.  
+begin
+	stim.resize(0);
+	
+	input_file in_stim = new input_file;
+
+	in_stim.open(file_path);
+
+	in_stim.set_delimiter( ',' ); 	# for get_line()
+
+	array <string> tmpstim[0];
+		
+	loop int count = 1 until
+		in_stim.end_of_file() || count == 100 || !in_stim.last_succeeded()
+	begin
+		in_stim.get_string().split(",",tmpstim);
+		stim.add(tmpstim);
+		tmpstim.resize(0);
+		count = count + 1;
+	end;
+
+	#print_2d_array(stim);
+end;

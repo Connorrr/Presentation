@@ -1,0 +1,459 @@
+#Function: 		PC.pcl
+#Description:	Contains the main run loop for the Pavlovian Conditioning experiment
+#Programmer:	Connor Reid (Psy Technician)
+#Created@:		08/08/2013
+#LastMod@:		01/12/2015
+#ModifiedBy: 	Connor Reid
+#Copyright@: 	School Of Psychology, Griffith University
+#-------------------------------------------------------------------
+include "generic_subs.pcl"
+include "PC_Globals.pcl";
+include "PC_Helpers.pcl";
+
+preset int Age = 18;
+preset int Gender = 1;	# Female = 2;Male = 1
+preset int Group_No = 1;
+
+
+display_window.set_font_style(display_style_bold);
+# use subject name + time and data for filenames
+string logfile_name;
+logfile_name = logfile.subject() + "_pc_" + date_time("hhnnss_dd-mm-yyyy");
+
+# set logfile name for this trial
+logfile.set_filename(logfile_name + ".log");
+int subid = int(logfile.subject());
+#------------------------------------------------------------------------------
+# setup text log file name (for saving the 150 trials for this subject)
+#------------------------------------------------------------------------------
+# use logfile name for filename but with "txt" extension
+
+output_file out = new output_file;
+out.open(logfile.subject()+"_pc" + ".xls");
+out.print("student number: "+logfile.subject()+"\t"+"Age: "+string(Age)+"\t"+"Gender: "+string(Gender)+"\t"+"Group: "+string(Group_No)+"\n");	#print the trial index
+out.print("Phase\tTrial Number\tShape\tExpectancy\tEvaluation\n");	#print the trial index
+
+fixation_trial.set_duration(5000/SPEED_UP);
+triangle_trial.set_duration(10000/SPEED_UP);
+poly_trial.set_duration(8000/SPEED_UP);
+poly_trial2.set_duration(2000/SPEED_UP);
+blank_trial.set_duration(5000/SPEED_UP);
+poly_rating_trial.set_duration(5000/SPEED_UP);
+triangle_rating_trial.set_duration(5000/SPEED_UP);
+
+#ToD:
+#load the filler images to the array
+
+array <bool> IS_POLY2[24];
+array <bool> IS_POLY3[24];
+array <bool> IS_POLY4[24];
+array <bool> IS_POLY5[24];
+
+build_stim_list(NUM_AQUI, IS_POLY);
+
+if (Group_No == 1) then
+	sort_stim_list(NUM_AQUI, 1, IS_POLY);
+else
+	sort_stim_list(NUM_AQUI, 2, IS_POLY);
+end;
+
+# for testing purpose
+/*build_stim_list(NUM_AQUI, IS_POLY2);
+sort_stim_list(NUM_AQUI, Group_No, IS_POLY2);
+build_stim_list(NUM_AQUI, IS_POLY3);
+sort_stim_list(NUM_AQUI, Group_No, IS_POLY3);
+build_stim_list(NUM_AQUI, IS_POLY4);
+sort_stim_list(NUM_AQUI, Group_No, IS_POLY4);
+build_stim_list(NUM_AQUI, IS_POLY5);
+sort_stim_list(NUM_AQUI, Group_No, IS_POLY5);
+loop 
+	int j = 1;
+until 
+	j > NUM_AQUI
+begin
+	term.print_line(string(j) + ":\t" + string(IS_POLY[j]) + "\t" + string(IS_POLY2[j]) + "\t" + string(IS_POLY3[j]) + "\t" + string(IS_POLY4[j]) + "\t" + string(IS_POLY5[j]));
+	j=j+1;
+end;*/
+
+int phase = 1;
+int shape = 0;
+int rndval = 0;
+int first = 0;
+int second = 0;
+if (Group_No == 1)then
+	first = 1;
+	second = 2;
+else
+	first = 2;
+	second = 1;
+end;
+
+
+term.print("Started\n");
+#start the actual experiment
+#PRACTICE_LIST.shuffle();
+welcome_1.present();
+welcome_2.present();
+welcome_3.present();
+scale_instruction_trial.present();
+int response_button1;
+int response_button2;
+
+############## Trials Start Here #################
+if (!SKIP_TEST) then
+	triangle_trial.present();
+	if (bool( response_manager.response_count() )) then
+		stimulus_data last = stimulus_manager.last_stimulus_data();
+		tri_rate_pic.remove_part(3);
+		tri_rate_pic.remove_part(2);
+		if (10000-last.reaction_time()>50) then
+		triangle_trial.set_duration(10000-last.reaction_time());
+		end;
+		triangle_trial.present();
+		term.print_line(string( last.reaction_time() ));
+		tri_rate_pic.insert_part(2, rate_now_text,0, 250);
+		tri_rate_pic.insert_part(3, expect_bmp, 0, -250);
+	end;
+	shape = 1;
+	#response_button1 = get_response();
+	blank_trial.present();
+	rndval = random(5000, 15000)/SPEED_UP;
+	triangle_rating_trial.set_duration(rndval);
+	#triangle_rating_trial.present();
+
+	triangle_rating_trial.present();
+	if (bool( response_manager.response_count() )) then
+		stimulus_data last = stimulus_manager.last_stimulus_data();
+		response_pic_tri.remove_part(2);
+		response_pic_tri.remove_part(1);
+		if (5000-last.reaction_time()>50) then
+		triangle_rating_trial.set_duration(5000-last.reaction_time());
+		end;
+		triangle_rating_trial.present();
+		response_pic_tri.insert_part(1, reaction_text, 0, 50);
+		response_pic_tri.insert_part(2, scale_bmp, 0, -50);
+	end;						
+
+	break_trial.present();
+end;
+############## Aquisition Phase ##################
+if (!SKIP_AQUI) then
+	int i=0;
+	loop 
+		i = 1;
+	until 
+		i > NUM_AQUI
+	begin
+		fixation_trial.present();
+		
+			if (IS_POLY[i] == false) then
+				#
+				triangle_trial.set_duration(10000);
+				triangle_trial.present();
+				if (bool( response_manager.response_count() )) then
+				#if (bool( stimulus_manager.stimulus_count() )) then
+					stimulus_data last = stimulus_manager.last_stimulus_data();
+					tri_rate_pic.remove_part(3);
+					tri_rate_pic.remove_part(2);
+					if (10000-last.reaction_time()>50) then
+					triangle_trial.set_duration(10000-last.reaction_time());
+					end;
+					triangle_trial.present();
+					term.print_line("event1");
+					tri_rate_pic.insert_part(2, rate_now_text,0, 250);
+					tri_rate_pic.insert_part(3, expect_bmp, 0, -250);
+					response_button1 = last.button();
+				end;
+				shape = 1;
+			else
+				
+				poly_trial.set_duration(8000);
+				poly_trial.present();
+				if (bool( response_manager.response_count() )) then
+				#if (bool( stimulus_manager.stimulus_count() )) then
+					stimulus_data last = stimulus_manager.last_stimulus_data();
+					poly_rate_pic.remove_part(3);
+					poly_rate_pic.remove_part(2);
+					if (8000-last.reaction_time()>50) then
+						poly_trial.set_duration(8000-last.reaction_time());
+					end;
+					poly_trial.present();
+					term.print_line("event2");
+					poly_rate_pic.insert_part(2, rate_now_text,0, 250);
+					poly_rate_pic.insert_part(3, expect_bmp, 0, -250);
+					response_button1 = last.button();
+				end;
+				
+				#response_button1 = get_response();
+				poly_trial2.present();
+				shape = 2;
+				
+			end;
+			#if (response_button1 == 0)then
+			#	response_button1 = get_response();
+			#end;
+			blank_trial.present();
+			rndval = random(5000, 15000)/SPEED_UP;
+			poly_rating_trial.set_duration(rndval);
+			triangle_rating_trial.set_duration(rndval);
+			if (IS_POLY[i] == false) then
+				
+				triangle_rating_trial.present();
+				if (bool( response_manager.response_count() )) then
+					stimulus_data last = stimulus_manager.last_stimulus_data();
+					response_pic_tri.remove_part(2);
+					response_pic_tri.remove_part(1);
+					if (5000-last.reaction_time()>50) then
+					triangle_rating_trial.set_duration(5000-last.reaction_time());
+					end;
+					triangle_rating_trial.present();
+					term.print_line("event4");
+					response_pic_tri.insert_part(1, reaction_text, 0, 50);
+					response_pic_tri.insert_part(2, scale_bmp, 0, -50);
+					response_button2 = last.button();
+				end;
+			else
+				poly_rating_trial.present();
+				if (bool( response_manager.response_count() )) then
+					stimulus_data last = stimulus_manager.last_stimulus_data();
+					response_pic_poly.remove_part(2);
+					response_pic_poly.remove_part(1);
+					if (5000-last.reaction_time()>50) then
+						poly_rating_trial.set_duration(5000-last.reaction_time());
+					end;
+					poly_rating_trial.present();
+					term.print_line("event3");
+					response_pic_poly.insert_part(1, reaction_text, 0, 50);
+					response_pic_poly.insert_part(2, scale_bmp, 0, -50);
+					response_button2 = last.button();
+				end;
+			end;
+		#end;
+		
+		#response_button2 = get_response();
+		term.print(response_button2);
+		
+		#"Phase\tTrial Number\tShape\tExpectancy\tEvaluation\n"
+		save_trail_data(phase, i, shape, response_button1, response_button2, out);
+		term.print("\n");
+		i = i + 1;
+	end;
+	break_trial.present();
+end;
+############## Aquisition Phase ##################
+term.print_line("Extinction Phase");
+build_stim_list(NUM_EXTINCT, IS_POLY);
+#print_1d_bool_array(IS_POLY);
+
+if (Group_No == 1) then				#  Switch group numbers for the sort_stim_list sub
+	sort_stim_list(NUM_EXTINCT, 2, IS_POLY);
+else
+	sort_stim_list(NUM_EXTINCT, 1, IS_POLY);
+end;
+poly_trial.set_duration(10000/SPEED_UP);
+phase = 2;
+
+#print_1d_bool_array(IS_POLY);
+
+############## Extinction  Phase ##################
+if (!SKIP_EXTINCT) then
+	loop 
+		int i = 1;
+	until 
+		i > NUM_EXTINCT
+	begin
+		fixation_trial.present();
+			if (IS_POLY[i] == false) then 
+				triangle_trial.set_duration(10000);
+				triangle_trial.present();
+				if (bool( response_manager.response_count() )) then
+				#if (bool( stimulus_manager.stimulus_count() )) then
+					stimulus_data last = stimulus_manager.last_stimulus_data();
+					tri_rate_pic.remove_part(3);
+					tri_rate_pic.remove_part(2);
+					if (10000-last.reaction_time()>50) then
+					triangle_trial.set_duration(10000-last.reaction_time());
+					end;
+					triangle_trial.present();
+					term.print_line("event1");
+					tri_rate_pic.insert_part(2, rate_now_text,0, 250);
+					tri_rate_pic.insert_part(3, expect_bmp, 0, -250);
+					response_button1 = last.button();
+				end;
+				shape = 1;
+			else
+				poly_trial.set_duration(8000);
+				poly_trial.present();
+				if (bool( response_manager.response_count() )) then
+				#if (bool( stimulus_manager.stimulus_count() )) then
+					stimulus_data last = stimulus_manager.last_stimulus_data();
+					poly_rate_pic.remove_part(3);
+					poly_rate_pic.remove_part(2);
+					if (8000-last.reaction_time()>50) then
+					poly_trial.set_duration(8000-last.reaction_time());
+					end;
+					poly_trial.present();
+					term.print_line("event2");
+					poly_rate_pic.insert_part(2, rate_now_text,0, 250);
+					poly_rate_pic.insert_part(3, expect_bmp,0, -250);
+					response_button1 = last.button();
+				end;
+				shape = 2;
+			end;
+			blank_trial.present();
+			rndval = random(5000, 15000)/SPEED_UP;
+			poly_rating_trial.set_duration(rndval);
+			triangle_rating_trial.set_duration(rndval);
+			if (IS_POLY[i] == false) then 
+				triangle_rating_trial.present();
+				if (bool( response_manager.response_count() )) then
+					stimulus_data last = stimulus_manager.last_stimulus_data();
+					response_pic_tri.remove_part(2);
+					response_pic_tri.remove_part(1);
+					if (5000-last.reaction_time()>50) then
+					triangle_rating_trial.set_duration(5000-last.reaction_time());
+					end;
+					triangle_rating_trial.present();
+					term.print_line("event4");
+					response_pic_tri.insert_part(1, reaction_text, 0, 50);
+					response_pic_tri.insert_part(2, scale_bmp, 0, -50);
+					response_button2 = last.button();
+				end;
+			else
+				poly_rating_trial.present();
+				if (bool( response_manager.response_count() )) then
+					stimulus_data last = stimulus_manager.last_stimulus_data();
+					response_pic_poly.remove_part(2);
+					response_pic_poly.remove_part(1);
+					if (5000-last.reaction_time()>50) then
+					poly_rating_trial.set_duration(5000-last.reaction_time());
+					end;
+					poly_rating_trial.present();
+					term.print_line("event3");
+					response_pic_poly.insert_part(1, reaction_text, 0, 50);
+					response_pic_poly.insert_part(2, scale_bmp, 0, -50);
+					response_button2 = last.button();
+				end;
+			end;
+		
+		#response_button2 = get_response();
+		term.print(response_button2);
+		
+		#"Phase\tTrial Number\tShape\tExpectancy\tEvaluation\n"
+		save_trail_data(phase, i, shape, response_button1, response_button2, out);
+		term.print("\n");
+		i = i + 1;
+	end;	
+	break_trial.present();
+end;
+############## Extinction  Phase ##################
+phase = 3;
+############## Reinstatement  Phase ###############
+if (!SKIP_REIN) then
+	loop
+		int i = 1
+	until 
+		i > NUM_REIN
+	begin
+		if (Group_No == 1) then
+			tone_reinstatement_trial.present();
+			blank_reinstatement_trial.present();
+		else
+			blank_reinstatement_trial.present();
+			blank_reinstatement_trial.present();
+		end;
+		i = i + 1;
+	end;
+	break_trial.present();
+end;
+############## Reinstatement  Phase ###############
+build_stim_list(NUM_TEST, IS_POLY);
+if (Group_No == 1) then
+	sort_stim_list(NUM_TEST, 1, IS_POLY);
+else
+	sort_stim_list(NUM_TEST, 2, IS_POLY);
+end;
+poly_trial.set_duration(10000/SPEED_UP);
+phase = 4;
+#################### Test  Phase ##################
+loop 
+	int i = 1;
+until 
+	i > NUM_TEST
+begin
+	fixation_trial.present();
+		if (IS_POLY[i] == false) then 
+			triangle_trial.set_duration(10000);
+			triangle_trial.present();
+			if (bool( response_manager.response_count() )) then
+				stimulus_data last = stimulus_manager.last_stimulus_data();
+				tri_rate_pic.remove_part(3);
+				tri_rate_pic.remove_part(2);
+				triangle_trial.set_duration(10000-last.reaction_time());
+				triangle_trial.present();
+				term.print_line("event1");
+				tri_rate_pic.insert_part(2, rate_now_text,0, 250);
+				tri_rate_pic.insert_part(3, expect_bmp,0, -250);
+				response_button1 = last.button();
+			end;
+			shape = 1;
+		else
+			poly_trial.set_duration(8000);
+			poly_trial.present();
+			if (bool( response_manager.response_count() )) then
+			#if (bool( stimulus_manager.stimulus_count() )) then
+				stimulus_data last = stimulus_manager.last_stimulus_data();
+				poly_rate_pic.remove_part(2);
+				poly_trial.set_duration(8000-last.reaction_time());
+				poly_trial.present();
+				term.print_line("event2");
+				poly_rate_pic.insert_part(2, rate_now_text,0, 250);
+				poly_rate_pic.insert_part(3, expect_bmp,0, -250);
+				response_button1 = last.button();
+			end;
+			shape = 2;
+		end;
+		blank_trial.present();
+		rndval = random(5000, 15000)/SPEED_UP;
+		poly_rating_trial.set_duration(rndval);
+		triangle_rating_trial.set_duration(rndval);
+		if (IS_POLY[i] == false) then 
+			triangle_rating_trial.present();
+			if (bool( response_manager.response_count() )) then
+				stimulus_data last = stimulus_manager.last_stimulus_data();
+				response_pic_tri.remove_part(2);
+				response_pic_tri.remove_part(1);
+				triangle_rating_trial.set_duration(5000-last.reaction_time());
+				triangle_rating_trial.present();
+				term.print_line("event4");
+				response_pic_tri.insert_part(1, reaction_text, 0, 50);
+				response_pic_tri.insert_part(2, scale_bmp, 0, -50);
+				response_button2 = last.button();
+			end;
+		else
+			poly_rating_trial.present();
+			if (bool( response_manager.response_count() )) then
+				stimulus_data last = stimulus_manager.last_stimulus_data();
+				response_pic_poly.remove_part(2);
+				response_pic_poly.remove_part(1);
+				poly_rating_trial.set_duration(5000-last.reaction_time());
+				poly_rating_trial.present();
+				term.print_line("event3");
+				response_pic_poly.insert_part(1, reaction_text, 0, 50);
+			   response_pic_poly.insert_part(2, scale_bmp, 0, -50);
+				response_button2 = last.button();
+			end;
+		end;
+	#end;
+	
+	#response_button2 = get_response();
+	term.print(response_button2);
+	
+	#"Phase\tTrial Number\tShape\tExpectancy\tEvaluation\n"
+	save_trail_data(phase, i, shape, response_button1, response_button2, out);
+	term.print("\n");
+	i = i + 1;
+end;	
+#################### Test  Phase ##################
+
+Goodbye_trial.present();
